@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "select.C": "cpp",
+        "string": "cpp",
+        "catalog.C": "cpp",
+        "minirel.C": "cpp",
+        "dbcreate.C": "cpp",
+        "create.C": "cpp",
+        "insert.C": "cpp",
+        "joinHT.C": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/g++"
+}
