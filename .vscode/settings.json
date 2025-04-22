@@ -7,7 +7,8 @@
         "dbcreate.C": "cpp",
         "create.C": "cpp",
         "insert.C": "cpp",
-        "joinHT.C": "cpp"
+        "joinHT.C": "cpp",
+        "delete.C": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
