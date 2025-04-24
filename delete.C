@@ -16,38 +16,44 @@ const Status QU_Delete(const string & relation,
 		       const Datatype type, 
 		       const char *attrValue)
 {
-	// 1) Look up the attribute to filter on
-    AttrDesc filterDesc;
-    Status rc = attrCat->getInfo(relation, attrName, filterDesc);
-    if (rc != OK) {
-        return rc;              // RELNOTFOUND or ATTRNOTFOUND
-    }
+	Status rc;
 
-    // 2) Open a heap‐file scan on the relation
+    // 1) Open the scan on the relation
     HeapFileScan scanner(relation, rc);
-    if (rc != OK) {
-        return rc;              // e.g. BADFILE, FILENOTOPEN
-    }
+    if (rc != OK) 
+        return rc;            // e.g. RELNOTFOUND, FILEOPEN error
 
-    // 3) Start a filtered scan on the given attribute
-    rc = scanner.startScan(
-        filterDesc.attrOffset,
-        filterDesc.attrLen,
-        type,
-        attrValue,
-        op
-    );
-    if (rc != OK) {
-        return rc;              // e.g. BADSCANPARM
+    // 2) Decide whether it’s filtered or unfiltered
+    if (attrName.empty()) {
+        // --- DELETE ALL: unfiltered scan
+        // startScan(offset=0, length=0, type=STRING, filter=NULL, op=EQ)
+        // (engine treats length=0||filter==NULL as “no filter”)
+        rc = scanner.startScan(0, 0, STRING, nullptr, EQ);
     }
+    else {
+        // --- DELETE … WHERE:
+        AttrDesc desc;
+        rc = attrCat->getInfo(relation, attrName, desc);
+        if (rc != OK)
+            return rc;        // ATTRNOTFOUND or RELNOTFOUND
 
-    // 4) Walk through matching RIDs and delete each tuple
+        rc = scanner.startScan(
+            desc.attrOffset,
+            desc.attrLen,
+            type,
+            attrValue,
+            op
+        );
+    }
+    if (rc != OK) 
+        return rc;            // BADSCANPARM, etc.
+
+    // 3) Walk the scan, deleting every matching record
     RID rid;
     while (scanner.scanNext(rid) == OK) {
         scanner.deleteRecord();
     }
-
-    // 5) Done
+    scanner.endScan();
     return OK;
 
 
